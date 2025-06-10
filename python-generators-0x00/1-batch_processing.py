@@ -1,13 +1,19 @@
-#!/user/bin/python3
+#!/usr/bin/python3
+"""
+Batch processing module using generators to fetch and process user data.
+"""
 import mysql.connector
 from mysql.connector import Error
 import os
 
-def stream_users_in_batches(batch_size):
-    '''
-    Generator function to stream users from the ALX_prodev database in batches.
-    Yields a list of user data dictionaries for each batch.
-    '''
+
+def connect_to_prodev():
+    """
+    Connect to the ALX_prodev database.
+    
+    Returns:
+        mysql.connector.connection: Database connection object
+    """
     try:
         connection = mysql.connector.connect(
             host=os.getenv('DB_HOST', 'localhost'),
@@ -17,34 +23,52 @@ def stream_users_in_batches(batch_size):
             charset='utf8mb4',
             collation='utf8mb4_unicode_ci'
         )
-        if connection.is_connected():
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM users")
-            
-            while True:
-                batch = cursor.fetchmany(batch_size)
-                if not batch:
-                    break
-                yield batch
-            
-            cursor.close()
+        return connection
     except Error as e:
-        print(f"Error streaming users in batches: {e}")
+        print(f"Error connecting to database: {e}")
+        return None
+
+
+def stream_users_in_batches(batch_size):
+    """
+    Generator that fetches rows in batches from the user_data table.
+    
+    Args:
+        batch_size (int): Number of rows to fetch per batch
+        
+    Yields:
+        list: Batch of user records as dictionaries
+    """
+    connection = connect_to_prodev()
+    if not connection:
+        return
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM user_data")
+        
+        while True:
+            batch = cursor.fetchmany(batch_size)
+            if not batch:
+                break
+            yield batch
+            
+    except Error as e:
+        print(f"Error fetching data: {e}")
     finally:
-        if connection.is_connected():
+        if connection and connection.is_connected():
+            cursor.close()
             connection.close()
-            print("MySQL connection is closed")
+
+
 def batch_processing(batch_size):
     """
-    Processes batches of users and filters those over age 25
+    Process each batch to filter users over the age of 25.
     
     Args:
         batch_size (int): Size of each batch to process
     """
-    # Loop 2: Process each batch from the generator
     for batch in stream_users_in_batches(batch_size):
-        # Loop 3: Filter and print users over age 25 from current batch
         for user in batch:
             if user['age'] > 25:
                 print(user)
-    
