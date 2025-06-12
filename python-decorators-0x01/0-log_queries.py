@@ -4,15 +4,12 @@ import functools
 #### decorator to log SQL queries
 
 def log_queries(func):
-    @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        # Extract the query - it's passed as keyword argument 'query'
+        # Log the query if it exists in kwargs
         if 'query' in kwargs:
             print(f"Executing query: {kwargs['query']}")
-        
         # Execute the original function
         return func(*args, **kwargs)
-    
     return wrapper
 
 @log_queries
