@@ -398,8 +398,5 @@ kubectl rollout undo deployment/django-messaging-app
 
 ## 📄 License
 
-This project is part of the ALX Backend Python curriculum and is intended for educational purposes.
-
----
-
-**Note:** This project demonstrates Kubernetes fundamentals and deployment strategies. In production environments, additional considerations for security, monitoring, and infrastructure management would be required.
+This project is part of the ALX Backend Python curriculum and is intended for educational purposes
+-
